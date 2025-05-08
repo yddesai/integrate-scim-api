@@ -1,137 +1,157 @@
-# SCIM 2.0 API Server
+# Multi-Provider Authentication Service
 
-A SCIM 2.0-compliant RESTful API server that supports automated user and group provisioning and deprovisioning. This server is compatible with multiple Identity Providers (IdPs) including Okta, Azure AD, and OneLogin.
+A flexible authentication service that supports multiple Identity Providers (IdPs) including Auth0 and Okta. Built with Flask and Authlib, this service provides a clean, extensible architecture for handling different authentication providers.
 
 ## Features
 
-- Full SCIM 2.0 compliance (RFC 7643 and RFC 7644)
-- Support for multiple IdPs (Okta, Azure AD, OneLogin)
-- User and Group management
-- HTTP Basic Authentication and OAuth 2.0 Bearer Token support
-- SQLite database for development (configurable for production)
-- Comprehensive API documentation
-- Extensible architecture
+- Support for multiple Identity Providers (currently Auth0 and Okta)
+- Easy-to-extend architecture for adding new IdPs
+- Secure session handling
+- Configurable settings through environment variables
+- Clean and modern UI
+- Error handling and validation
+
+## Project Structure
+
+```
+├── auth/
+│   └── providers.py     # IdP provider implementations
+├── templates/
+│   └── home.html       # Template file
+├── config.py           # Configuration settings
+├── server.py           # Main application file
+├── .env               # Environment variables (create from .env.example)
+└── .env.example       # Example environment configuration
+```
 
 ## Prerequisites
 
-- Python 3.8+
-- pip (Python package manager)
-- virtualenv (recommended)
+- Python 3.7+
+- pip (Python package installer)
 
 ## Installation
 
 1. Clone the repository:
-```bash
-git clone <repository-url>
-cd scim-server
-```
+   ```bash
+   git clone <repository-url>
+   cd <repository-name>
+   ```
 
 2. Create and activate a virtual environment:
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
 
 3. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
+   ```bash
+   pip install flask authlib python-dotenv
+   ```
 
-4. Set up environment variables:
-```bash
-cp .env.example .env
-# Edit .env with your configuration
-```
-
-5. Initialize the database:
-```bash
-flask db upgrade
-```
+4. Create your environment file:
+   ```bash
+   cp .env.example .env
+   ```
 
 ## Configuration
 
-The application can be configured through environment variables or a `.env` file:
+Edit the `.env` file with your IdP settings. The following variables are available:
 
-- `FLASK_APP`: Application entry point
-- `FLASK_ENV`: Environment (development/production)
-- `DATABASE_URL`: Database connection string
-- `SECRET_KEY`: Application secret key
-- `JWT_SECRET_KEY`: JWT signing key
-- `BASIC_AUTH_USERNAME`: Basic auth username
-- `BASIC_AUTH_PASSWORD`: Basic auth password
-
-## Running the Server
-
-Development:
-```bash
-flask run
+### Application Settings
+```
+APP_SECRET_KEY=your-secret-key-here
+BASE_URL=http://localhost:5000
+PORT=5000
 ```
 
-Production:
-```bash
-gunicorn "app:create_app()"
+### Session Security Settings
+```
+SESSION_COOKIE_SECURE=False  # Set to True in production
 ```
 
-## API Documentation
-
-The API documentation is available at `/docs` when running the server. The following endpoints are implemented:
-
-### Users
-- GET /scim/v2/Users
-- POST /scim/v2/Users
-- GET /scim/v2/Users/{id}
-- PUT /scim/v2/Users/{id}
-- PATCH /scim/v2/Users/{id}
-- DELETE /scim/v2/Users/{id}
-
-### Groups
-- GET /scim/v2/Groups
-- POST /scim/v2/Groups
-- GET /scim/v2/Groups/{id}
-- PUT /scim/v2/Groups/{id}
-- PATCH /scim/v2/Groups/{id}
-- DELETE /scim/v2/Groups/{id}
-
-### Service Provider Configuration
-- GET /scim/v2/ServiceProviderConfig
-- GET /scim/v2/ResourceTypes
-- GET /scim/v2/Schemas
-
-## Testing
-
-Run the test suite:
-```bash
-pytest
+### Identity Provider Selection
+```
+IDP_PROVIDER=auth0  # Options: auth0, okta
 ```
 
-## Deployment
-
-The application can be deployed to various platforms:
-
-### Docker
-```bash
-docker build -t scim-server .
-docker run -p 5000:5000 scim-server
+### Auth0 Settings (required if using Auth0)
+```
+AUTH0_CLIENT_ID=your-auth0-client-id
+AUTH0_CLIENT_SECRET=your-auth0-client-secret
+AUTH0_DOMAIN=your-domain.auth0.com
 ```
 
-### Azure App Service
-1. Create an Azure App Service
-2. Configure deployment from GitHub
-3. Set environment variables in Azure Portal
+### Okta Settings (required if using Okta)
+```
+OKTA_CLIENT_ID=your-okta-client-id
+OKTA_CLIENT_SECRET=your-okta-client-secret
+OKTA_DOMAIN=your-okta-domain.okta.com
+OKTA_ISSUER=https://your-okta-domain.okta.com
+```
 
-### AWS Elastic Beanstalk
-1. Create an Elastic Beanstalk environment
-2. Deploy using the AWS CLI or console
-3. Configure environment variables
+## Running the Application
 
-## Contributing
+1. Make sure your virtual environment is activated:
+   ```bash
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
 
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+2. Start the server:
+   ```bash
+   python server.py
+   ```
 
-## License
+The application will be available at `http://localhost:5000` (or whatever port you configured).
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+## IdP-Specific Setup
+
+### Auth0 Setup
+
+1. Create a new application in Auth0 Dashboard
+2. Configure the following settings:
+   - Allowed Callback URLs: `http://localhost:5000/callback`
+   - Allowed Logout URLs: `http://localhost:5000`
+   - Allowed Web Origins: `http://localhost:5000`
+3. Copy the Client ID, Client Secret, and Domain to your `.env` file
+
+### Okta Setup
+
+1. Create a new application in Okta Developer Console
+2. Configure the following settings:
+   - Sign-in redirect URIs: `http://localhost:5000/callback`
+   - Sign-out redirect URIs: `http://localhost:5000`
+   - Base URIs: `http://localhost:5000`
+3. Copy the Client ID, Client Secret, Domain, and Issuer to your `.env` file
+
+## Adding a New Identity Provider
+
+To add support for a new Identity Provider:
+
+1. Add the provider's configuration settings to `config.py`
+2. Create a new provider class in `auth/providers.py` that extends `IdPProvider`
+3. Implement the required methods:
+   - `setup()`
+   - `get_login_redirect()`
+   - `get_logout_redirect()`
+   - `process_callback()`
+4. Add the new provider to the `providers` dictionary in the `get_provider` function
+
+Example of adding a new provider:
+
+```python
+class NewProvider(IdPProvider):
+    def setup(self):
+        self.oauth.register(
+            "new_provider",
+            client_id=self.config.NEW_PROVIDER_CLIENT_ID,
+            client_secret=self.config.NEW_PROVIDER_CLIENT_SECRET,
+            # ... additional configuration
+        )
+
+    def get_login_redirect(self):
+        return self.oauth.new_provider.authorize_redirect(
+            redirect_uri=self.config.CALLBACK_URL
+        )
+
+    # ... implement other required methods
+```
