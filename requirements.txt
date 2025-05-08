@@ -1,0 +1,15 @@
+flask>=2.2.5
+flask-sqlalchemy==3.0.2
+flask-migrate==4.0.4
+flask-jwt-extended==4.4.4
+flask-cors==4.0.0
+python-dotenv>=0.19.2
+authlib>=1.0
+requests>=2.27.1
+marshmallow==3.20.1
+marshmallow-sqlalchemy==0.29.0
+pytest==7.4.0
+pytest-flask==1.2.0
+gunicorn==21.2.0
+python-jose==3.3.0
+bcrypt==4.0.1 
